@@ -12,33 +12,22 @@ import datetime
 import md5
 from ConfigParser import ConfigParser
 
-HOST = '127.0.0.1'
-PORT = 10000
+
+
+config=ConfigParser()
 CONFIGFILE = "config.cfg"
+config.read(CONFIGFILE)
+HOST=config.get("hpfeeds","HOST")
+PORT=config.get("hpfeeds","PORT")
+IDENT=config.get("hpfeeds","IDENT")			
+SECRET=config.get("hpfeeds","SECRET")
 CHANNELS = ['dionaea.connections', 'geoloc.events','dionaea.dcerpcrequests','dionaea.shellcodeprofiles','mwbinary.dionaea.sensorunique','dionaea.capture']
-IDENT = 'ww3ee@hp1'
-SECRET = '7w35rippuhx7704h'
-
-# Required
-MONGOHOST = '127.0.0.1'
-MONGOPORT = 27017
-MONGODBNAME = 'hpfeeds'
-# Optional
-MONGOUSER = ''
-MONGOPWD = ''
-
-def get_config():
-	config=ConfigParser()
-	config.read(CONFIGFILE)
-	HOST=config.get("hpfeeds","HOST")
-	PORT=config.get("hpfeeds","PORT")
-	CHANNELS=config.get("hpfeeds","CHANNELS")
-	IDENT=config.get("hpfeeds","IDENT")			
-	SECRET=config.get("hpfeeds","SECRET")	
-	MONGOHOST=config.get("database","MONGOHOST")	
-	MONGOPORT=config.get("database","MONGOPORT")	
-	MONGOUSER=config.get("database","MONGOUSER")	
-	MONGOPWD=config.get("database","MONGOPWD")
+	
+MONGOHOST=config.get("database","MONGOHOST")	
+MONGOPORT=config.get("database","MONGOPORT")
+MONGODBNAME=config.get("database","MONGODBNAME")	
+MONGOUSER=config.get("database","MONGOUSER")	
+MONGOPWD=config.get("database","MONGOPWD")
 	
 def get_db(host, port, name, user = '', passwd = ''):
         dbconn = pymongo.Connection(host, port)
@@ -49,11 +38,12 @@ def get_db(host, port, name, user = '', passwd = ''):
 
 
 def main():
-	get_config()
-	hpc = hpfeeds.new(HOST, PORT, IDENT, SECRET)
+
+	
+	hpc = hpfeeds.new(str(HOST), int(PORT), str(IDENT), str(SECRET))
 	print >>sys.stderr, 'connected to', hpc.brokername
 
-	db = get_db(MONGOHOST, MONGOPORT, MONGODBNAME, MONGOUSER, MONGOPWD)
+	db = get_db(str(MONGOHOST), int(MONGOPORT), str(MONGODBNAME), str(MONGOUSER), str(MONGOPWD))
 	collection = None
 	
 	def on_message(identifier, channel, payload):
