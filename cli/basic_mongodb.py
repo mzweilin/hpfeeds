@@ -12,8 +12,6 @@ import datetime
 import md5
 from ConfigParser import ConfigParser
 
-
-
 config=ConfigParser()
 CONFIGFILE = "config.cfg"
 config.read(CONFIGFILE)
@@ -36,16 +34,14 @@ def get_db(host, port, name, user = '', passwd = ''):
         	db.authenticate(user, passwd)
         return db
 
-
 def main():
-
 	
 	hpc = hpfeeds.new(str(HOST), int(PORT), str(IDENT), str(SECRET))
 	print >>sys.stderr, 'connected to', hpc.brokername
 
 	db = get_db(str(MONGOHOST), int(MONGOPORT), str(MONGODBNAME), str(MONGOUSER), str(MONGOPWD))
 	collection = None
-	
+
 	def on_message(identifier, channel, payload):
 		if channel == 'dionaea.connections':
 			try:
@@ -53,9 +49,10 @@ def main():
 			except:
 				print 'exception processing dionaea.connections event', repr(payload)
 			else:
-				msg["time"] = datetime.datetime.utcfromtimestamp(msg['time'])
-				msg['rport'] = int(msg['rport'])
-				msg['lport'] = int(msg['lport'])
+				msg["time"] = datetime.datetime.now()
+				print msg
+				msg['remote_port'] = int(msg['remote_port'])
+				msg['local_port'] = int(msg['local_port'])
 				print 'inserting...', msg
 				collection = db['dionaea.connections']
 				collection.insert(msg)
@@ -66,7 +63,7 @@ def main():
 			except:
 				print 'exception processing geoloc.events', repr(payload)
 			else:
-				msg['time'] = datetime.datetime.strptime(msg['time'], "%Y-%m-%d %H:%M:%S")
+				msg["time"] = datetime.datetime.now()
 				print 'inserting...', msg
 				collection =  db['geoloc.events']
 				collection.insert(msg)
@@ -77,8 +74,7 @@ def main():
 			except:
 				print 'exception processing dionaea.dcerpcrequests', repr(payload)
 			else:
-				dt = datetime.datetime.now()
-				msg['time'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+				msg["time"] = datetime.datetime.now()
 				print 'inserting...', msg
 				collection = db['dionaea.dcerpcrequests']
 				collection.insert(msg)
@@ -89,8 +85,7 @@ def main():
 			except:
 				print 'exception processing dionaea.shellcodeprofiles', repr(payload)
 			else:
-				dt = datetime.datetime.now()
-				msg['time'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+				msg["time"] = datetime.datetime.now()
 				print 'inserting...', msg
 				collection = db['dionaea.shellcodeprofiles']
 				collection.insert(msg)
@@ -113,8 +108,7 @@ def main():
 			except:
 				print 'exception processing dionaea.capture', repr(payload)
 			else:
-				dt = datetime.datetime.now()
-				msg['time'] = dt.strftime('%Y-%m-%d %H:%M:%S')
+				msg["time"] = datetime.datetime.now()
 				print 'inserting...', msg
 				collection = db['dionaea.capture']
 				collection.insert(msg)
