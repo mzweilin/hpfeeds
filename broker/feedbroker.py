@@ -145,6 +145,7 @@ class FeedConn(EventGen):
 						continue
 					
 					self._event('publish', self, chan, data)
+					print rest
 				elif opcode == OP_SUBSCRIBE:
 					rest = buffer(data, 0)
 					ident, chan = rest[1:1+ord(rest[0])], rest[1+ord(rest[0]):]

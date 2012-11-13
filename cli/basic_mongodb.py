@@ -13,13 +13,15 @@ import md5
 from ConfigParser import ConfigParser
 
 config=ConfigParser()
-CONFIGFILE = "config.cfg"
+CONFIGFILE = "/home/wind/config.cfg"
 config.read(CONFIGFILE)
 HOST=config.get("hpfeeds","HOST")
 PORT=config.get("hpfeeds","PORT")
 IDENT=config.get("hpfeeds","IDENT")			
 SECRET=config.get("hpfeeds","SECRET")
-CHANNELS = ['dionaea.connections', 'geoloc.events','dionaea.dcerpcrequests','dionaea.shellcodeprofiles','mwbinary.dionaea.sensorunique','dionaea.capture']
+CHANNELS = ['dionaea.connections', 'geoloc.events','dionaea.dcerpcrequests','dionaea.shellcodeprofiles','mwbinary.dionaea.sensorunique','dionaea.capture',
+'dionaea.offer','dionaea.emu_services','dionaea.mssql_command','dionaea.mssql_fingerprint','dionaea.logins','dionaea.dcerpcbind',
+'dionaea.p0f','dionaea.bistream','kippo.malware','kippo.sessions']
 	
 MONGOHOST=config.get("database","MONGOHOST")	
 MONGOPORT=config.get("database","MONGOPORT")
@@ -98,7 +100,7 @@ def main():
 				hash = md5.new()
 				hash.update(payload_python)
 				msg = hash.hexdigest()
-				print 'inserting mwbinary...', msg
+				print 'inserting dionaea.mwbinary...', msg
 				gfsDate=GridFS(db,'dionaea.sensorunique')
 				gfsDate.put(payload_python,filename=msg)
 		elif channel == 'dionaea.capture':
@@ -112,6 +114,122 @@ def main():
 				print 'inserting...', msg
 				collection = db['dionaea.capture']
 				collection.insert(msg)
+		elif channel == 'dionaea.offer':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.offer', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.offer']
+				collection.insert(msg)
+		elif channel == 'dionaea.emu_services':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.emu_services', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.emu_services']
+				collection.insert(msg)
+		elif channel == 'dionaea.mssql_command':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.mssql_command', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.mssql_command']
+				collection.insert(msg)
+		elif channel == 'dionaea.mssql_fingerprint':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing mssql_fingerprint', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.mssql_fingerprint']
+				collection.insert(msg)
+		elif channel == 'dionaea.logins':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.logins', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.logins']
+				collection.insert(msg)
+		elif channel == 'dionaea.dcerpcbind':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.dcerpcbind', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.dcerpcbind']
+				collection.insert(msg)
+		elif channel == 'dionaea.p0f':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.p0f', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.p0f']
+				collection.insert(msg)
+		elif channel == 'dionaea.bistream':
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing dionaea.bistream', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['dionaea.bistream']
+				collection.insert(msg)
+		elif channel == 'kippo.sessions':
+			try:
+				payload_python = str(payload)
+				replaceNone=payload_python.replace("null", "None")
+				replaceTrue=replaceNone.replace("true", "True")
+				replaceFalse=replaceTrue.replace("false", "False")
+				msg = ast.literal_eval(replaceFalse)
+			except Exception ,e:
+				print 'exception processing kippo.sessions {0}'.format(e)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['kippo.sessions']
+				collection.insert(msg)
+		elif channel == 'kippo.malware' :
+			try:
+				payload_python = str(payload)
+			except:
+				print 'exception processing kippo.malware', repr(payload)
+			else:
+				hash = md5.new()
+				hash.update(payload_python)
+				msg = hash.hexdigest()
+				print 'inserting kippo.mwbinary...', msg
+				gfsDate=GridFS(db,'kippo.malware')
+				gfsDate.put(payload_python,filename=msg)
+		else:
+			print channel+"HHHAAAA"+str(payload)
 	def on_error(payload):
 		print >>sys.stderr, ' -> errormessage from server: {0}'.format(payload)
 		hpc.stop()
