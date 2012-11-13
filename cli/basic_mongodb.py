@@ -13,7 +13,7 @@ import md5
 from ConfigParser import ConfigParser
 
 config=ConfigParser()
-CONFIGFILE = "/home/wind/config.cfg"
+CONFIGFILE = "basic_mongodb.cfg"
 config.read(CONFIGFILE)
 HOST=config.get("hpfeeds","HOST")
 PORT=config.get("hpfeeds","PORT")
