@@ -9,7 +9,7 @@ import hpfeeds
 import pymongo
 import ast
 import datetime
-import md5
+import hashlib
 from ConfigParser import ConfigParser
 
 config=ConfigParser()
@@ -97,12 +97,15 @@ def main():
 			except:
 				print 'exception processing mwbinary.dionaea.sensorunique', repr(payload)
 			else:
-				hash = md5.new()
+				hash = hashlib.sha1()
 				hash.update(payload_python)
 				msg = hash.hexdigest()
 				print 'inserting dionaea.mwbinary...', msg
-				gfsDate=GridFS(db,'dionaea.sensorunique')
-				gfsDate.put(payload_python,filename=msg)
+				gfsData=GridFS(db,'malwareSample')
+				if(gfsData.exists(filename=msg))
+					print 'skip sha1 %s dionaea.malwareSample'%msg
+				else
+					gfsData.put(payload_python,filename=msg)
 		elif channel == 'dionaea.capture':
 			try:
 				payload_python = str(payload)
@@ -222,14 +225,17 @@ def main():
 			except:
 				print 'exception processing kippo.malware', repr(payload)
 			else:
-				hash = md5.new()
+				hash = hashlib.sha1()
 				hash.update(payload_python)
 				msg = hash.hexdigest()
 				print 'inserting kippo.mwbinary...', msg
-				gfsDate=GridFS(db,'kippo.malware')
-				gfsDate.put(payload_python,filename=msg)
+				gfsData=GridFS(db,'malwareSample')
+				if(gfsData.exists(filename=msg))
+					print 'skip sha1 %s kippo.malwareSample'%msg
+				else
+					gfsData.put(payload_python,filename=msg)
 		else:
-			print channel+"HHHAAAA"+str(payload)
+			print channel+" Not exists!! "+str(payload)
 	def on_error(payload):
 		print >>sys.stderr, ' -> errormessage from server: {0}'.format(payload)
 		hpc.stop()
