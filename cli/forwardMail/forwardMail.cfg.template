@@ -1,0 +1,6 @@
+[hpfeeds]
+HOST =1.1.1.1 
+PORT = 10000
+IDENT = indent 
+SECRET = secret
+
