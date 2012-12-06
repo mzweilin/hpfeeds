@@ -10,6 +10,10 @@ import pymongo
 import ast
 import datetime
 import hashlib
+import locale
+import codecs
+import base64
+from spampot_mongodb import SpampotBackEndHandler
 from ConfigParser import ConfigParser
 
 config=ConfigParser()
@@ -20,8 +24,8 @@ PORT=config.get("hpfeeds","PORT")
 IDENT=config.get("hpfeeds","IDENT")			
 SECRET=config.get("hpfeeds","SECRET")
 CHANNELS = ['dionaea.connections', 'geoloc.events','dionaea.dcerpcrequests','dionaea.shellcodeprofiles','mwbinary.dionaea.sensorunique','dionaea.capture',
-'dionaea.offer','dionaea.emu_services','dionaea.mssql_command','dionaea.mssql_fingerprint','dionaea.logins','dionaea.dcerpcbind',
-'dionaea.p0f','dionaea.bistream','kippo.malware','kippo.sessions']
+'dionaea.offer','dionaea.emu_services','dionaea.mssql_command','dionaea.mssql_fingerprint','dionaea.mssql_logins','dionaea.dcerpcbind',
+'dionaea.p0f','dionaea.bistream','kippo.malware','kippo.sessions','spampot_events']
 	
 MONGOHOST=config.get("database","MONGOHOST")	
 MONGOPORT=config.get("database","MONGOPORT")
@@ -43,7 +47,8 @@ def main():
 
 	db = get_db(str(MONGOHOST), int(MONGOPORT), str(MONGODBNAME), str(MONGOUSER), str(MONGOPWD))
 	collection = None
-
+	hander = SpampotBackEndHandler(db)
+	
 	def on_message(identifier, channel, payload):
 		if channel == 'dionaea.connections':
 			try:
@@ -102,9 +107,9 @@ def main():
 				msg = hash.hexdigest()
 				print 'inserting dionaea.mwbinary...', msg
 				gfsData=GridFS(db,'malwareSample')
-				if(gfsData.exists(filename=msg))
+				if gfsData.exists(filename=msg):
 					print 'skip sha1 %s dionaea.malwareSample'%msg
-				else
+				else:
 					gfsData.put(payload_python,filename=msg)
 		elif channel == 'dionaea.capture':
 			try:
@@ -161,16 +166,16 @@ def main():
 				print 'inserting...', msg
 				collection = db['dionaea.mssql_fingerprint']
 				collection.insert(msg)
-		elif channel == 'dionaea.logins':
+		elif channel == 'dionaea.mssql_logins':
 			try:
 				payload_python = str(payload)
 				msg = ast.literal_eval(payload_python.replace("null", "None"))
 			except:
-				print 'exception processing dionaea.logins', repr(payload)
+				print 'exception processing dionaea.mssql_logins', repr(payload)
 			else:
 				msg["time"] = datetime.datetime.now()
 				print 'inserting...', msg
-				collection = db['dionaea.logins']
+				collection = db['dionaea.mssql_logins']
 				collection.insert(msg)
 		elif channel == 'dionaea.dcerpcbind':
 			try:
@@ -198,8 +203,9 @@ def main():
 			try:
 				payload_python = str(payload)
 				msg = ast.literal_eval(payload_python.replace("null", "None"))
-			except:
+			except Exception,e:
 				print 'exception processing dionaea.bistream', repr(payload)
+				print "Exception:{0}".format(e)
 			else:
 				msg["time"] = datetime.datetime.now()
 				print 'inserting...', msg
@@ -230,10 +236,18 @@ def main():
 				msg = hash.hexdigest()
 				print 'inserting kippo.mwbinary...', msg
 				gfsData=GridFS(db,'malwareSample')
-				if(gfsData.exists(filename=msg))
+				if gfsData.exists(filename=msg):
 					print 'skip sha1 %s kippo.malwareSample'%msg
-				else
+				else:
 					gfsData.put(payload_python,filename=msg)
+		elif channel == 'spampot_events' :
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing spampot_events', repr(payload)
+			else:
+				hander.process_spampot_message( msg )			
 		else:
 			print channel+" Not exists!! "+str(payload)
 	def on_error(payload):
