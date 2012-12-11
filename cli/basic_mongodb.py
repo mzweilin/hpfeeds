@@ -25,7 +25,7 @@ IDENT=config.get("hpfeeds","IDENT")
 SECRET=config.get("hpfeeds","SECRET")
 CHANNELS = ['dionaea.connections', 'geoloc.events','dionaea.dcerpcrequests','dionaea.shellcodeprofiles','mwbinary.dionaea.sensorunique','dionaea.capture',
 'dionaea.offer','dionaea.emu_services','dionaea.mssql_command','dionaea.mssql_fingerprint','dionaea.mssql_logins','dionaea.dcerpcbind',
-'dionaea.p0f','dionaea.bistream','kippo.malware','kippo.sessions','spampot_events']
+'dionaea.p0f','dionaea.bistream','kippo.malware','kippo.sessions','spampot_events','6Guard_attacks']
 	
 MONGOHOST=config.get("database","MONGOHOST")	
 MONGOPORT=config.get("database","MONGOPORT")
@@ -248,6 +248,17 @@ def main():
 				print 'exception processing spampot_events', repr(payload)
 			else:
 				hander.process_spampot_message( msg )			
+		elif channel == '6Guard_attacks' :
+			try:
+				payload_python = str(payload)
+				msg = ast.literal_eval(payload_python.replace("null", "None"))
+			except:
+				print 'exception processing 6Guard_attacks', repr(payload)
+			else:
+				msg["time"] = datetime.datetime.now()
+				print 'inserting...', msg
+				collection = db['6Guard.attacks']
+				collection.insert(msg)			
 		else:
 			print channel+" Not exists!! "+str(payload)
 	def on_error(payload):
